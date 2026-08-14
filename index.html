@@ -177,6 +177,54 @@
   .filter-count { font-size: 12.5px; color: var(--sub); white-space: nowrap; padding-bottom: 9px; }
   .filter-count b { color: var(--blue-dark); }
 
+  /* Multi-select filter dropdown */
+  .ms { position: relative; }
+  .ms-toggle {
+    width: 100%;
+    appearance: none;
+    border: 1.5px solid var(--line);
+    background: var(--blue-lighter) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="%231d63d1" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg>') no-repeat right 12px center;
+    border-radius: 10px;
+    padding: 9px 34px 9px 12px;
+    font-size: 13.5px;
+    color: var(--ink);
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ms-toggle:focus { outline: none; }
+  .ms.open .ms-toggle { border-color: var(--blue); }
+  .ms-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 100%;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--white);
+    border: 1.5px solid var(--blue-pale);
+    border-radius: 12px;
+    box-shadow: 0 14px 30px -10px rgba(23,70,162,0.28);
+    z-index: 20;
+    padding: 6px;
+  }
+  .ms.open .ms-panel { display: block; }
+  .ms-actions { display: flex; gap: 6px; padding: 4px 6px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+  .ms-actions button {
+    border: none; background: var(--blue-light); color: var(--blue-dark); font-weight: 600;
+    font-size: 11px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  }
+  .ms-actions button:hover { background: var(--blue-pale); }
+  .ms-option { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .ms-option:hover { background: var(--blue-lighter); }
+  .ms-option input { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .ms-option span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ms-empty { padding: 10px 8px; font-size: 12.5px; color: var(--mute); }
+
   /* Charts */
   .chart-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 16px; }
   .chart-row.single { grid-template-columns: 1fr; }
@@ -309,15 +357,24 @@
     </div>
     <div class="filter-item">
       <label>บริษัท</label>
-      <select id="fCompany"><option value="">ทั้งหมด</option></select>
+      <div class="ms" id="msCompany">
+        <button type="button" class="ms-toggle" id="msCompanyToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msCompanyPanel"></div>
+      </div>
     </div>
     <div class="filter-item">
       <label>แผนก / หน่วยงาน</label>
-      <select id="fDept"><option value="">ทั้งหมด</option></select>
+      <div class="ms" id="msDept">
+        <button type="button" class="ms-toggle" id="msDeptToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msDeptPanel"></div>
+      </div>
     </div>
     <div class="filter-item">
       <label>วุฒิการศึกษา</label>
-      <select id="fEdu"><option value="">ทั้งหมด</option></select>
+      <div class="ms" id="msEdu">
+        <button type="button" class="ms-toggle" id="msEduToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msEduPanel"></div>
+      </div>
     </div>
     <button class="reset-btn" id="resetBtn">ล้างตัวกรอง</button>
     <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
@@ -1730,9 +1787,6 @@ function empTypeLabel(t){ return EMP_TYPE_LABELS[t] || t; }
 function uniqueSorted(arr){ return [...new Set(arr)].sort((a,b)=>a.localeCompare(b,'th')); }
 
 const fMonth = document.getElementById('fMonth');
-const fCompany = document.getElementById('fCompany');
-const fDept = document.getElementById('fDept');
-const fEdu = document.getElementById('fEdu');
 
 MONTH_KEYS.forEach(mk=>{
   const opt = document.createElement('option');
@@ -1741,50 +1795,120 @@ MONTH_KEYS.forEach(mk=>{
 });
 fMonth.value = currentMonth;
 
-function populateFilterOptions(){
-  [fCompany, fDept, fEdu].forEach(sel=>{ sel.innerHTML = '<option value="">ทั้งหมด</option>'; });
+function createMultiSelect(rootId){
+  const root = document.getElementById(rootId);
+  const toggle = document.getElementById(rootId+'Toggle');
+  const panel = document.getElementById(rootId+'Panel');
+  const selected = new Set();
 
-  const companies = uniqueSorted(DATA.map(d=>d.company));
+  function updateToggleLabel(items){
+    if(selected.size===0 || selected.size===items.length){
+      toggle.textContent = 'ทั้งหมด';
+    } else if(selected.size===1){
+      toggle.textContent = [...selected][0];
+    } else {
+      toggle.textContent = selected.size+' รายการที่เลือก';
+    }
+  }
+
+  function syncCheckboxes(){
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{ cb.checked = selected.has(cb.value); });
+  }
+
+  function renderOptions(items){
+    panel.innerHTML = '';
+    const actions = document.createElement('div');
+    actions.className = 'ms-actions';
+    const selectAllBtn = document.createElement('button');
+    selectAllBtn.type = 'button'; selectAllBtn.textContent = 'เลือกทั้งหมด';
+    selectAllBtn.addEventListener('click', ()=>{ items.forEach(i=>selected.add(i.value)); syncCheckboxes(); updateToggleLabel(items); render(); });
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button'; clearBtn.textContent = 'ล้าง';
+    clearBtn.addEventListener('click', ()=>{ selected.clear(); syncCheckboxes(); updateToggleLabel(items); render(); });
+    actions.appendChild(selectAllBtn); actions.appendChild(clearBtn);
+    panel.appendChild(actions);
+
+    if(items.length===0){
+      const empty = document.createElement('div');
+      empty.className = 'ms-empty'; empty.textContent = 'ไม่มีตัวเลือก';
+      panel.appendChild(empty);
+      return;
+    }
+
+    items.forEach(item=>{
+      const label = document.createElement('label');
+      label.className = 'ms-option';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.value = item.value;
+      cb.checked = selected.has(item.value);
+      cb.addEventListener('change', ()=>{
+        if(cb.checked) selected.add(item.value); else selected.delete(item.value);
+        updateToggleLabel(items);
+        render();
+      });
+      const span = document.createElement('span');
+      span.textContent = item.text;
+      label.appendChild(cb); label.appendChild(span);
+      panel.appendChild(label);
+    });
+  }
+
+  panel.addEventListener('click', ev=> ev.stopPropagation());
+  toggle.addEventListener('click', ev=>{
+    ev.stopPropagation();
+    const isOpen = root.classList.contains('open');
+    document.querySelectorAll('.ms.open').forEach(el=> el.classList.remove('open'));
+    if(!isOpen) root.classList.add('open');
+  });
+
+  return { selected, renderOptions, updateToggleLabel, reset(){ selected.clear(); } };
+}
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.ms.open').forEach(el=> el.classList.remove('open'));
+});
+
+const msCompany = createMultiSelect('msCompany');
+const msDept = createMultiSelect('msDept');
+const msEdu = createMultiSelect('msEdu');
+
+function populateFilterOptions(){
+  const companies = uniqueSorted(DATA.map(d=>d.company)).map(c=>({ value:c, text: COMPANY_MAP[c]||c }));
 
   const deptCodeSet = [...new Set(DATA.map(d=>d.deptCode))];
   deptCodeSet.sort((a,b)=> deptSortKey(a).localeCompare(deptSortKey(b)));
+  const depts = deptCodeSet.map(code=>({ value: deptLabel(code), text: deptLabel(code) }));
 
-  const edus = uniqueSorted(DATA.map(d=>d.education));
+  const edus = uniqueSorted(DATA.map(d=>d.education)).map(e=>({ value:e, text:e }));
 
-  companies.forEach(c=>{
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = COMPANY_MAP[c] || c;
-    fCompany.appendChild(opt);
-  });
-  deptCodeSet.forEach(code=>{
-    const opt = document.createElement('option');
-    opt.value = deptLabel(code); opt.textContent = deptLabel(code);
-    fDept.appendChild(opt);
-  });
-  edus.forEach(e=>{
-    const opt = document.createElement('option');
-    opt.value = e; opt.textContent = e;
-    fEdu.appendChild(opt);
-  });
+  const companyValues = new Set(companies.map(c=>c.value));
+  [...msCompany.selected].forEach(v=>{ if(!companyValues.has(v)) msCompany.selected.delete(v); });
+  const deptValues = new Set(depts.map(d=>d.value));
+  [...msDept.selected].forEach(v=>{ if(!deptValues.has(v)) msDept.selected.delete(v); });
+  const eduValues = new Set(edus.map(e=>e.value));
+  [...msEdu.selected].forEach(v=>{ if(!eduValues.has(v)) msEdu.selected.delete(v); });
+
+  msCompany.renderOptions(companies); msCompany.updateToggleLabel(companies);
+  msDept.renderOptions(depts); msDept.updateToggleLabel(depts);
+  msEdu.renderOptions(edus); msEdu.updateToggleLabel(edus);
 }
 populateFilterOptions();
 
 function getFiltered(){
-  const c = fCompany.value, d = fDept.value, e = fEdu.value;
+  const c = msCompany.selected, d = msDept.selected, e = msEdu.selected;
   return DATA.filter(r=>
-    (!c || r.company===c) &&
-    (!d || r.deptName===d) &&
-    (!e || r.education===e)
+    (c.size===0 || c.has(r.company)) &&
+    (d.size===0 || d.has(r.deptName)) &&
+    (e.size===0 || e.has(r.education))
   );
 }
 
 function getFilteredCountForMonth(monthKey){
-  const c = fCompany.value, d = fDept.value, e = fEdu.value;
+  const c = msCompany.selected, d = msDept.selected, e = msEdu.selected;
   const arr = DATA_BY_MONTH[monthKey] || [];
   return arr.filter(r=>
-    (!c || r.company===c) &&
-    (!d || r.deptName===d) &&
-    (!e || r.education===e)
+    (c.size===0 || c.has(r.company)) &&
+    (d.size===0 || d.has(r.deptName)) &&
+    (e.size===0 || e.has(r.education))
   ).length;
 }
 
@@ -1969,10 +2093,15 @@ function render(){
   document.getElementById('kpi2GenderSub').textContent = 'ชาย ' + maleCount.toLocaleString() + ' คน · หญิง ' + femaleCount.toLocaleString() + ' คน';
 
   // scope badge
+  function scopeLabel(selectedSet, allLabel, mapFn){
+    if(selectedSet.size===0) return allLabel;
+    const vals = [...selectedSet];
+    return vals.length<=2 ? vals.map(mapFn||(v=>v)).join(', ') : selectedSet.size+' รายการ';
+  }
   const parts = [];
-  parts.push(fCompany.value ? (COMPANY_MAP[fCompany.value]||fCompany.value) : 'ทุกบริษัท');
-  parts.push(fDept.value || 'ทุกแผนก');
-  parts.push(fEdu.value || 'ทุกวุฒิ');
+  parts.push(scopeLabel(msCompany.selected, 'ทุกบริษัท', v=>COMPANY_MAP[v]||v));
+  parts.push(scopeLabel(msDept.selected, 'ทุกแผนก'));
+  parts.push(scopeLabel(msEdu.selected, 'ทุกวุฒิ'));
   document.getElementById('scopeBadge').textContent = parts.join(' · ');
 
   renderCompareBanner();
@@ -2029,7 +2158,6 @@ function render(){
 buildCharts();
 render();
 
-[fCompany, fDept, fEdu].forEach(el=> el.addEventListener('change', render));
 fMonth.addEventListener('change', ()=>{
   currentMonth = fMonth.value;
   DATA = DATA_BY_MONTH[currentMonth];
@@ -2038,7 +2166,8 @@ fMonth.addEventListener('change', ()=>{
   render();
 });
 document.getElementById('resetBtn').addEventListener('click', ()=>{
-  fCompany.value=''; fDept.value=''; fEdu.value='';
+  msCompany.reset(); msDept.reset(); msEdu.reset();
+  populateFilterOptions();
   render();
 });
 </script>
