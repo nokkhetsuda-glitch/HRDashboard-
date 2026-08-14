@@ -174,6 +174,8 @@
     transition: background .15s ease;
   }
   .reset-btn:hover { background: var(--blue-dark); }
+  .export-btn { background: var(--good); }
+  .export-btn:hover { background: #15803d; }
   .filter-count { font-size: 12.5px; color: var(--sub); white-space: nowrap; padding-bottom: 9px; }
   .filter-count b { color: var(--blue-dark); }
 
@@ -377,6 +379,7 @@
       </div>
     </div>
     <button class="reset-btn" id="resetBtn">ล้างตัวกรอง</button>
+    <button class="reset-btn export-btn" id="exportBtn">⬇ Export CSV</button>
     <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
   </div>
 
@@ -2169,6 +2172,38 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   msCompany.reset(); msDept.reset(); msEdu.reset();
   populateFilterOptions();
   render();
+});
+
+function csvCell(v){
+  const s = String(v==null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const rows = getFiltered();
+  const headers = ['เพศ','อายุ','วุฒิการศึกษา','กลุ่มพนักงาน','ประเภทพนักงาน','บริษัท','หน่วยงาน','ระดับ'];
+  const lines = [headers.map(csvCell).join(',')];
+  rows.forEach(r=>{
+    lines.push([
+      r.gender,
+      r.age,
+      r.education,
+      r.employeeGroup,
+      empTypeLabel(r.empType),
+      COMPANY_MAP[r.company] || r.company,
+      r.deptName,
+      r.level
+    ].map(csvCell).join(','));
+  });
+  const csvContent = '﻿' + lines.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'HR_Dashboard_' + currentMonth + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 });
 </script>
 </body>
