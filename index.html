@@ -428,8 +428,8 @@
   <div class="section-label">แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)</div>
   <div class="chart-row single">
     <div class="chart-card">
-      <h3>จำนวนพนักงานรายเดือน</h3>
-      <div class="desc">ตามเงื่อนไข บริษัท / แผนก / วุฒิการศึกษาที่เลือกไว้ (ทุกเดือนที่มีข้อมูล)</div>
+      <h3>จำนวนพนักงานรายเดือน แยกตามบริษัท</h3>
+      <div class="desc">ตามเงื่อนไข แผนก / วุฒิการศึกษาที่เลือกไว้ (ทุกเดือนที่มีข้อมูล)</div>
       <div class="chart-box mid"><canvas id="trendChart"></canvas></div>
     </div>
   </div>
@@ -1915,6 +1915,17 @@ function getFilteredCountForMonth(monthKey){
   ).length;
 }
 
+function getFilteredCountForMonthByCompany(monthKey, companyCode){
+  const c = msCompany.selected, d = msDept.selected, e = msEdu.selected;
+  const arr = DATA_BY_MONTH[monthKey] || [];
+  return arr.filter(r=>
+    r.company === companyCode &&
+    (c.size===0 || c.has(r.company)) &&
+    (d.size===0 || d.has(r.deptName)) &&
+    (e.size===0 || e.has(r.education))
+  ).length;
+}
+
 function countBy(arr, key){
   const m = {};
   arr.forEach(r=>{ m[r[key]] = (m[r[key]]||0)+1; });
@@ -2008,13 +2019,26 @@ function buildCharts(){
   });
 
   const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  const trendCompanyColors = { PEM:'#1746a2', CI:'#f59e0b' };
   trendChart = new Chart(ctxTrend, {
     type: 'bar',
-    data: { labels: [], datasets: [{ label:'จำนวนคน', data: [], backgroundColor:'#1746a2', borderRadius:8, maxBarThickness:70 }] },
+    data: { labels: [], datasets: Object.keys(COMPANY_MAP).map(code=>({
+      label: COMPANY_MAP[code], company: code, data: [],
+      backgroundColor: trendCompanyColors[code] || '#64748b', borderRadius:6, maxBarThickness:70
+    })) },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>ctx.parsed.y+' คน'}} },
-      scales:{ y:{ beginAtZero:true, grid:{color:'#eef3fb'} }, x:{ grid:{display:false} } }
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ boxWidth:12, font:{size:11.5} } },
+        tooltip:{ callbacks:{
+          label:(ctx)=>ctx.dataset.label+': '+ctx.parsed.y+' คน',
+          footer:(items)=>'รวม: '+items.reduce((s,i)=>s+i.parsed.y,0)+' คน'
+        } }
+      },
+      scales:{
+        y:{ beginAtZero:true, stacked:true, grid:{color:'#eef3fb'} },
+        x:{ stacked:true, grid:{display:false} }
+      }
     }
   });
 }
@@ -2152,9 +2176,11 @@ function render(){
   levelChart.data.datasets[0].data = levelEntries.map(e=>e[1]);
   levelChart.update();
 
-  // monthly headcount trend (respects company/dept/edu filters, across all months)
+  // monthly headcount trend, stacked by company (respects dept/edu filters, across all months)
   trendChart.data.labels = MONTH_KEYS.map(mk=>MONTH_LABELS[mk]);
-  trendChart.data.datasets[0].data = MONTH_KEYS.map(mk=>getFilteredCountForMonth(mk));
+  trendChart.data.datasets.forEach(ds=>{
+    ds.data = MONTH_KEYS.map(mk=>getFilteredCountForMonthByCompany(mk, ds.company));
+  });
   trendChart.update();
 }
 
