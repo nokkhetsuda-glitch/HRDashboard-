@@ -23,6 +23,7 @@
     --mute: #94a3b8;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
     font-family: "Segoe UI", "Sarabun", "Noto Sans Thai", Arial, sans-serif;
@@ -247,8 +248,28 @@
   .section-label {
     font-size: 13px; font-weight: 700; color: var(--blue-dark);
     margin: 22px 2px 10px; display: flex; align-items: center; gap: 8px;
+    scroll-margin-top: 72px;
   }
   .section-label::before { content:""; width:4px; height:14px; background:var(--blue); border-radius:2px; display:inline-block; }
+
+  .section-nav {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; gap: 6px; overflow-x: auto;
+    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px; margin-bottom: 8px;
+    box-shadow: 0 2px 10px rgba(11,46,89,.07);
+    scrollbar-width: none;
+  }
+  .section-nav::-webkit-scrollbar { display: none; }
+  .section-nav-link {
+    flex: 0 0 auto;
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 700; color: var(--sub);
+    text-decoration: none; white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .section-nav-link:hover { background: var(--blue-lighter); color: var(--blue-dark); }
+  .section-nav-link.active { background: var(--blue); color: #fff; }
 
   /* Month comparison banner */
   .compare-banner {
@@ -383,7 +404,16 @@
     <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
   </div>
 
-  <div class="section-label">การกระจายตัวตามแผนก/หน่วยงาน และวุฒิการศึกษา</div>
+  <nav class="section-nav" id="sectionNav">
+    <a href="#sec-dept" class="section-nav-link">แผนก/วุฒิ</a>
+    <a href="#sec-group" class="section-nav-link">กลุ่ม/เพศ</a>
+    <a href="#sec-type" class="section-nav-link">ประเภท/ระดับ</a>
+    <a href="#sec-age" class="section-nav-link">อายุ/เพศ</a>
+    <a href="#sec-retire" class="section-nav-link">ใกล้เกษียณ</a>
+    <a href="#sec-trend" class="section-nav-link">แนวโน้ม</a>
+  </nav>
+
+  <div class="section-label" id="sec-dept">การกระจายตัวตามแผนก/หน่วยงาน และวุฒิการศึกษา</div>
   <div class="chart-row">
     <div class="chart-card">
       <h3>จำนวนพนักงานแยกตามแผนก / หน่วยงาน</h3>
@@ -397,7 +427,7 @@
     </div>
   </div>
 
-  <div class="section-label">สัดส่วนตามกลุ่มพนักงานและเพศ</div>
+  <div class="section-label" id="sec-group">สัดส่วนตามกลุ่มพนักงานและเพศ</div>
   <div class="chart-row">
     <div class="chart-card">
       <h3>สัดส่วนตามกลุ่มพนักงาน (Employee Group)</h3>
@@ -411,7 +441,7 @@
     </div>
   </div>
 
-  <div class="section-label">ประเภทและระดับพนักงาน</div>
+  <div class="section-label" id="sec-type">ประเภทและระดับพนักงาน</div>
   <div class="chart-row">
     <div class="chart-card">
       <h3>จำนวนพนักงานแบ่งตามประเภทพนักงาน</h3>
@@ -425,7 +455,7 @@
     </div>
   </div>
 
-  <div class="section-label">โครงสร้างพนักงานเชิงอายุและเพศ</div>
+  <div class="section-label" id="sec-age">โครงสร้างพนักงานเชิงอายุและเพศ</div>
   <div class="chart-row">
     <div class="chart-card">
       <h3>พีระมิดอายุ แยกชาย-หญิง (Age Pyramid)</h3>
@@ -439,7 +469,7 @@
     </div>
   </div>
 
-  <div class="section-label">กลุ่มใกล้เกษียณ (Succession Planning)</div>
+  <div class="section-label" id="sec-retire">กลุ่มใกล้เกษียณ (Succession Planning)</div>
   <div class="chart-row single">
     <div class="chart-card">
       <h3>พนักงานอายุ 55 ปีขึ้นไป แยกตามหน่วยงาน</h3>
@@ -448,7 +478,7 @@
     </div>
   </div>
 
-  <div class="section-label">แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)</div>
+  <div class="section-label" id="sec-trend">แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)</div>
   <div class="chart-row single">
     <div class="chart-card">
       <h3>จำนวนพนักงานรายเดือน แยกตามบริษัท</h3>
@@ -2358,6 +2388,18 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
+
+// section nav: highlight active link while scrolling
+(function(){
+  const navLinks = [...document.querySelectorAll('.section-nav-link')];
+  const targets = navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  if (!targets.length || !('IntersectionObserver' in window)) return;
+  const setActive = (id)=> navLinks.forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id));
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{ if (entry.isIntersecting) setActive(entry.target.id); });
+  }, { rootMargin: '-88px 0px -70% 0px', threshold: 0 });
+  targets.forEach(t=>io.observe(t));
+})();
 </script>
 </body>
 </html>
