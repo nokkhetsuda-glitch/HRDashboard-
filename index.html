@@ -323,6 +323,14 @@
   }
   .compare-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
   .compare-head h3 { margin:0; font-size:14.5px; color:var(--navy); font-weight:700; }
+  .compare-picker { display:flex; align-items:center; gap:8px; }
+  .compare-picker select {
+    appearance: none; border: 1.5px solid var(--line);
+    background: var(--blue-lighter) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%231d63d1" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg>') no-repeat right 10px center;
+    border-radius: 8px; padding: 6px 26px 6px 10px; font-size: 12.5px; color: var(--ink); font-family: inherit; cursor: pointer;
+  }
+  .compare-picker select:focus { outline: none; border-color: var(--blue); }
+  .compare-arrow { color: var(--mute); font-size: 13px; }
   .compare-total { font-size:13px; color:var(--sub); }
   .compare-total b { color:var(--navy); font-size:15px; }
   .compare-total .delta-up { color: var(--good); font-weight:700; }
@@ -384,7 +392,12 @@
 
   <div class="compare-banner">
     <div class="compare-head">
-      <h3>เปรียบเทียบกับเดือนก่อนหน้า</h3>
+      <h3>เปรียบเทียบระหว่างเดือน</h3>
+      <div class="compare-picker">
+        <select id="compareFromMonth"></select>
+        <span class="compare-arrow">&rarr;</span>
+        <select id="compareToMonth"></select>
+      </div>
       <div class="compare-total" id="compareTotal">-</div>
     </div>
     <div class="compare-list" id="compareList"></div>
@@ -506,12 +519,12 @@
   <div class="chart-row">
     <div class="chart-card">
       <h3>จำนวนพนักงานแยกตามแผนก / หน่วยงาน</h3>
-      <div class="desc">เรียงจากมากไปน้อย (Top 15) · แสดงรหัสหน่วยงานนำหน้าชื่อ</div>
+      <div class="desc">เรียงจากมากไปน้อย (Top 15) · แสดงรหัสหน่วยงานนำหน้าชื่อ · คลิกแท่งเพื่อกรองข้อมูล</div>
       <div class="chart-box tall"><canvas id="deptChart"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>สัดส่วนวุฒิการศึกษา</h3>
-      <div class="desc">แยกตามระดับการศึกษาสูงสุด</div>
+      <div class="desc">แยกตามระดับการศึกษาสูงสุด · คลิกส่วนกราฟเพื่อกรองข้อมูล</div>
       <div class="chart-box tall"><canvas id="eduChart"></canvas></div>
     </div>
   </div>
@@ -1941,6 +1954,19 @@ MONTH_KEYS.forEach(mk=>{
 });
 fMonth.value = currentMonth;
 
+const compareFromMonth = document.getElementById('compareFromMonth');
+const compareToMonth = document.getElementById('compareToMonth');
+MONTH_KEYS.forEach(mk=>{
+  const o1 = document.createElement('option'); o1.value = mk; o1.textContent = MONTH_LABELS[mk];
+  compareFromMonth.appendChild(o1);
+  const o2 = document.createElement('option'); o2.value = mk; o2.textContent = MONTH_LABELS[mk];
+  compareToMonth.appendChild(o2);
+});
+compareFromMonth.value = MONTH_KEYS.length>=2 ? MONTH_KEYS[MONTH_KEYS.length-2] : MONTH_KEYS[0];
+compareToMonth.value = MONTH_KEYS[MONTH_KEYS.length-1];
+compareFromMonth.addEventListener('change', renderCompareBanner);
+compareToMonth.addEventListener('change', renderCompareBanner);
+
 function createMultiSelect(rootId){
   const root = document.getElementById(rootId);
   const toggle = document.getElementById(rootId+'Toggle');
@@ -2039,6 +2065,20 @@ function populateFilterOptions(){
 }
 populateFilterOptions();
 
+function chartClickFilter(ms, value){
+  if (ms.selected.size === 1 && ms.selected.has(value)) {
+    ms.selected.clear();
+  } else {
+    ms.selected.clear();
+    ms.selected.add(value);
+  }
+  populateFilterOptions();
+  render();
+}
+function chartPointerHover(evt, elements){
+  evt.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+}
+
 function getFiltered(){
   const c = msCompany.selected, d = msDept.selected, e = msEdu.selected;
   return DATA.filter(r=>
@@ -2098,6 +2138,8 @@ function buildCharts(){
     options: {
       indexAxis: 'y',
       responsive:true, maintainAspectRatio:false,
+      onClick: (evt, elements)=>{ if (elements.length) chartClickFilter(msDept, deptChart.data.labels[elements[0].index]); },
+      onHover: chartPointerHover,
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:(ctx)=>ctx.parsed.x+' คน'}} },
       scales:{ x:{ beginAtZero:true, grid:{color:'#eef3fb'} }, y:{ grid:{display:false}, ticks:{font:{size:11}} } }
     }
@@ -2109,6 +2151,8 @@ function buildCharts(){
     data: { labels: [], datasets: [{ data: [], backgroundColor: palette }] },
     options: {
       responsive:true, maintainAspectRatio:false,
+      onClick: (evt, elements)=>{ if (elements.length) chartClickFilter(msEdu, eduChart.data.labels[elements[0].index]); },
+      onHover: chartPointerHover,
       plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, font:{size:10.5}, padding:10 } },
         tooltip:{ callbacks:{ label:(ctx)=>{
           const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
@@ -2260,15 +2304,15 @@ function buildCharts(){
 function renderCompareBanner(){
   const totalEl = document.getElementById('compareTotal');
   const listEl = document.getElementById('compareList');
-  const idx = MONTH_KEYS.indexOf(currentMonth);
-  if (idx <= 0){
-    totalEl.innerHTML = 'ไม่มีข้อมูลเดือนก่อนหน้าเพื่อเปรียบเทียบ';
+  const fromMonth = compareFromMonth.value;
+  const toMonth = compareToMonth.value;
+  if (!fromMonth || !toMonth || fromMonth === toMonth){
+    totalEl.innerHTML = (fromMonth && fromMonth===toMonth) ? 'กรุณาเลือกเดือนที่ต่างกันเพื่อเปรียบเทียบ' : '-';
     listEl.innerHTML = '<span class="compare-empty">—</span>';
     return;
   }
-  const prevMonth = MONTH_KEYS[idx-1];
-  const curArr = DATA_BY_MONTH[currentMonth];
-  const prevArr = DATA_BY_MONTH[prevMonth];
+  const curArr = DATA_BY_MONTH[toMonth];
+  const prevArr = DATA_BY_MONTH[fromMonth];
 
   const curTotal = curArr.length;
   const prevTotal = prevArr.length;
@@ -2276,7 +2320,7 @@ function renderCompareBanner(){
   const pct = prevTotal ? ((diff/prevTotal)*100).toFixed(1) : '0.0';
   const cls = diff>0 ? 'delta-up' : (diff<0 ? 'delta-down' : 'delta-flat');
   const sign = diff>0 ? '+' : '';
-  totalEl.innerHTML = MONTH_LABELS[prevMonth]+': <b>'+prevTotal.toLocaleString()+'</b> คน &rarr; '+MONTH_LABELS[currentMonth]+': <b>'+curTotal.toLocaleString()+'</b> คน &nbsp; <span class="'+cls+'">('+sign+diff+' คน, '+sign+pct+'%)</span>';
+  totalEl.innerHTML = MONTH_LABELS[fromMonth]+': <b>'+prevTotal.toLocaleString()+'</b> คน &rarr; '+MONTH_LABELS[toMonth]+': <b>'+curTotal.toLocaleString()+'</b> คน &nbsp; <span class="'+cls+'">('+sign+diff+' คน, '+sign+pct+'%)</span>';
 
   const curByDept = countBy(curArr, 'deptName');
   const prevByDept = countBy(prevArr, 'deptName');
