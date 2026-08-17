@@ -2311,8 +2311,7 @@ function applyChartTheme(){
     if (scales){
       Object.values(scales).forEach(scale=>{
         if (scale.grid) scale.grid.color = gridColor;
-        scale.ticks = scale.ticks || {};
-        scale.ticks.color = textColor;
+        if (scale.ticks) scale.ticks.color = textColor;
       });
     }
     ch.update('none');
