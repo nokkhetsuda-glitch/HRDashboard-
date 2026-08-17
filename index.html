@@ -21,15 +21,40 @@
     --good: #16a34a;
     --warn: #f59e0b;
     --mute: #94a3b8;
+    --btn-solid: #0b2e59;
+    --body-grad-1: #f2f7fd;
+    --body-grad-2: #eef4fb;
+    --male: #1d63d1;
+    --female: #f59e0b;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --navy: #eef3fb;
+    --blue-dark: #7fabf5;
+    --blue: #4d8dff;
+    --blue-mid: #6fa2f2;
+    --blue-light: #17243d;
+    --blue-lighter: #131f36;
+    --blue-pale: #223353;
+    --ink: #e7edf8;
+    --sub: #93a2bd;
+    --line: #23324c;
+    --white: #101a2d;
+    --good: #22c55e;
+    --warn: #fbbf24;
+    --mute: #6b7c9c;
+    --body-grad-1: #0a1526;
+    --body-grad-2: #0c1a2f;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
     font-family: "Segoe UI", "Sarabun", "Noto Sans Thai", Arial, sans-serif;
-    background: linear-gradient(180deg, #f2f7fd 0%, #eef4fb 100%);
+    background: linear-gradient(180deg, var(--body-grad-1) 0%, var(--body-grad-2) 100%);
     color: var(--ink);
     padding: 22px 28px 40px;
+    transition: background .2s ease, color .2s ease;
   }
   .wrap { max-width: 1280px; margin: 0 auto; }
 
@@ -38,7 +63,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(120deg, var(--navy) 0%, var(--blue-dark) 55%, var(--blue) 100%);
+    background: linear-gradient(120deg, #0b2e59 0%, #1746a2 55%, #1d63d1 100%);
     border-radius: 18px;
     padding: 22px 28px;
     color: #fff;
@@ -55,12 +80,21 @@
   }
   .topbar h1 { font-size: 20px; margin: 0 0 3px; font-weight: 700; letter-spacing: .2px; }
   .topbar p { margin: 0; font-size: 12.5px; color: #cfe0fa; }
-  .topbar-right { text-align: right; font-size: 12px; color: #d7e6fb; }
+  .topbar-right { text-align: right; font-size: 12px; color: #d7e6fb; display: flex; align-items: center; gap: 12px; }
+  .topbar-right-text { text-align: right; }
   .topbar-right .badge {
     display: inline-block; margin-top: 6px; background: rgba(255,255,255,0.14);
     border: 1px solid rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 999px;
     font-size: 11.5px;
   }
+  .theme-toggle {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+    color: #fff; font-size: 17px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.28); }
 
   /* KPI cards */
   .kpi-grid {
@@ -140,6 +174,13 @@
   .chip-blue { color: var(--blue-dark); border-color: var(--blue-pale); background: var(--blue-light); }
   .chip-green { color: #15803d; border-color: #bbf7d0; background: #f0fdf4; }
   .chip-orange { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+  :root[data-theme="dark"] .kpi-card2.c-green .kpi-icon { background: #103322; color: var(--good); }
+  :root[data-theme="dark"] .kpi-card2.c-orange .kpi-icon { background: #3a2a0d; color: var(--warn); }
+  :root[data-theme="dark"] .chip-green { color: #4ade80; border-color: #14532d; background: #0f2a1c; }
+  :root[data-theme="dark"] .chip-orange { color: #fbbf24; border-color: #4a3510; background: #2a1f0a; }
+  .text-male { color: var(--male); }
+  .text-female { color: var(--female); }
+  .kpi-unit.text-female { color: var(--female); }
 
   /* Filters */
   .filter-bar {
@@ -169,7 +210,7 @@
   }
   .filter-item select:focus { outline: none; border-color: var(--blue); }
   .reset-btn {
-    border: none; background: var(--navy); color: #fff; font-weight: 600;
+    border: none; background: var(--btn-solid); color: #fff; font-weight: 600;
     font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer;
     height: 38px; white-space: nowrap;
     transition: background .15s ease;
@@ -300,15 +341,28 @@
   .footer-note {
     text-align: center; font-size: 11.5px; color: var(--mute); margin-top: 26px;
   }
+
+  /* Auto insights */
+  .insight-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .insight-card {
+    background: var(--blue-light); border: 1px solid var(--blue-pale); border-radius: 14px;
+    padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .insight-icon { font-size: 19px; flex-shrink: 0; line-height: 1.2; }
+  .insight-title { font-size: 12.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 3px; line-height: 1.3; }
+  .insight-detail { font-size: 11.5px; color: var(--sub); line-height: 1.4; }
+
   @media (max-width: 980px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .kpi-grid2 { grid-template-columns: repeat(2, 1fr); }
     .chart-row { grid-template-columns: 1fr; }
     .chart-row.triple { grid-template-columns: 1fr; }
+    .insight-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
 <body>
+<script>(function(){try{if(localStorage.getItem('hrDashboardTheme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
 <div class="wrap">
 
   <div class="topbar">
@@ -320,8 +374,11 @@
       </div>
     </div>
     <div class="topbar-right">
-      อัปเดตข้อมูลล่าสุด: <span id="lastUpdated">สิงหาคม 2026</span>
-      <div class="badge" id="scopeBadge">ทุกบริษัท · ทุกแผนก · ทุกวุฒิ</div>
+      <div class="topbar-right-text">
+        อัปเดตข้อมูลล่าสุด: <span id="lastUpdated">สิงหาคม 2026</span>
+        <div class="badge" id="scopeBadge">ทุกบริษัท · ทุกแผนก · ทุกวุฒิ</div>
+      </div>
+      <button type="button" class="theme-toggle" id="themeToggle" title="สลับโหมดมืด/สว่าง">🌙</button>
     </div>
   </div>
 
@@ -367,9 +424,41 @@
     </div>
     <div class="kpi-card2 c-blue">
       <div class="kpi-top"><span class="kpi-label">สัดส่วนชาย : หญิง</span><span class="kpi-icon">🚻</span></div>
-      <div class="kpi-value2"><span id="kpi2MalePct">-</span><span class="kpi-unit"> : </span><span id="kpi2FemalePct" class="kpi-unit">-</span><span class="kpi-unit">%</span></div>
+      <div class="kpi-value2"><span id="kpi2MalePct" class="text-male">-</span><span class="kpi-unit"> : </span><span id="kpi2FemalePct" class="kpi-unit text-female">-</span><span class="kpi-unit">%</span></div>
       <div class="kpi-note2" id="kpi2GenderSub">ชาย - คน · หญิง - คน</div>
       <div class="kpi-chip chip-blue">Gender Ratio</div>
+    </div>
+  </div>
+
+  <div class="section-label">ข้อมูลเชิงลึกอัตโนมัติ (Auto Insights)</div>
+  <div class="insight-grid">
+    <div class="insight-card">
+      <div class="insight-icon">🏢</div>
+      <div>
+        <div class="insight-title" id="insightDeptTitle">-</div>
+        <div class="insight-detail" id="insightDeptDetail">-</div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">🎂</div>
+      <div>
+        <div class="insight-title" id="insightAgeTitle">-</div>
+        <div class="insight-detail" id="insightAgeDetail">-</div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">⏳</div>
+      <div>
+        <div class="insight-title" id="insightRetireTitle">-</div>
+        <div class="insight-detail" id="insightRetireDetail">-</div>
+      </div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-icon">⚖️</div>
+      <div>
+        <div class="insight-title" id="insightGlassTitle">-</div>
+        <div class="insight-detail" id="insightGlassDetail">-</div>
+      </div>
     </div>
   </div>
 
@@ -1832,6 +1921,7 @@ let DATA = DATA_BY_MONTH[currentMonth];
 let TOTAL = DATA.length;
 
 const palette = ['#0b2e59','#1746a2','#1d63d1','#3b82f6','#5e9bf5','#7db3f8','#a3c9fa','#0ea5e9','#0369a1','#64748b','#94a3b8','#2dd4bf','#0e7490','#334155','#93c5fd','#1e40af','#38bdf8','#475569','#60a5fa','#bfdbfe','#155e75','#4b5563'];
+const GENDER_COLORS = { male: '#1d63d1', female: '#f59e0b' };
 
 const EMP_TYPE_LABELS = {
   'ประจำ': 'พนักงานประจำ',
@@ -2043,7 +2133,7 @@ function buildCharts(){
   const ctxGender = document.getElementById('genderChart').getContext('2d');
   genderChart = new Chart(ctxGender, {
     type: 'doughnut',
-    data: { labels: [], datasets: [{ data: [], backgroundColor:['#1d63d1','#f59e0b'] }] },
+    data: { labels: [], datasets: [{ data: [], backgroundColor:[GENDER_COLORS.male, GENDER_COLORS.female] }] },
     options: {
       responsive:true, maintainAspectRatio:false, cutout:'62%',
       plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, font:{size:11} } },
@@ -2088,8 +2178,8 @@ function buildCharts(){
   pyramidChart = new Chart(ctxPyramid, {
     type: 'bar',
     data: { labels: AGE_BINS.map(b=>b.label), datasets: [
-      { label:'ชาย (Male)', data: [], backgroundColor:'#1d63d1', borderRadius:4, maxBarThickness:26 },
-      { label:'หญิง (Female)', data: [], backgroundColor:'#f59e0b', borderRadius:4, maxBarThickness:26 }
+      { label:'ชาย (Male)', data: [], backgroundColor:GENDER_COLORS.male, borderRadius:4, maxBarThickness:26 },
+      { label:'หญิง (Female)', data: [], backgroundColor:GENDER_COLORS.female, borderRadius:4, maxBarThickness:26 }
     ] },
     options: {
       indexAxis: 'y',
@@ -2109,8 +2199,8 @@ function buildCharts(){
   glassChart = new Chart(ctxGlass, {
     type: 'bar',
     data: { labels: [], datasets: [
-      { label:'ชาย (Male)', data: [], backgroundColor:'#1d63d1', borderRadius:4, maxBarThickness:26 },
-      { label:'หญิง (Female)', data: [], backgroundColor:'#f59e0b', borderRadius:4, maxBarThickness:26 }
+      { label:'ชาย (Male)', data: [], backgroundColor:GENDER_COLORS.male, borderRadius:4, maxBarThickness:26 },
+      { label:'หญิง (Female)', data: [], backgroundColor:GENDER_COLORS.female, borderRadius:4, maxBarThickness:26 }
     ] },
     options: {
       indexAxis: 'y',
@@ -2207,6 +2297,26 @@ function renderCompareBanner(){
       return '<div class="compare-chip">'+ch.name+' <span class="'+cls2+'">'+sign2+ch.delta+'</span></div>';
     }).join('');
   }
+}
+
+function applyChartTheme(){
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const gridColor = dark ? 'rgba(255,255,255,0.08)' : '#eef3fb';
+  const textColor = dark ? '#aebdd6' : '#5b6b85';
+  [deptChart, eduChart, groupChart, genderChart, typeChart, levelChart, trendChart, pyramidChart, glassChart, retireChart].forEach(ch=>{
+    if (!ch) return;
+    const legend = ch.options.plugins && ch.options.plugins.legend;
+    if (legend && legend.labels) legend.labels.color = textColor;
+    const scales = ch.options.scales;
+    if (scales){
+      Object.values(scales).forEach(scale=>{
+        if (scale.grid) scale.grid.color = gridColor;
+        scale.ticks = scale.ticks || {};
+        scale.ticks.color = textColor;
+      });
+    }
+    ch.update('none');
+  });
 }
 
 function render(){
@@ -2333,6 +2443,32 @@ function render(){
   document.getElementById('retireCount').textContent = retireRows.length.toLocaleString();
   document.getElementById('retirePct').textContent = totalF ? ((retireRows.length/totalF)*100).toFixed(1) : '0.0';
 
+  // auto insights
+  const insightDeptTop = deptEntries[0];
+  document.getElementById('insightDeptTitle').textContent = insightDeptTop ? insightDeptTop[0] : 'ไม่มีข้อมูล';
+  document.getElementById('insightDeptDetail').textContent = insightDeptTop ? ('หน่วยงานที่มีพนักงานมากที่สุด ' + insightDeptTop[1].toLocaleString() + ' คน') : '-';
+
+  const deptAgeGroups = {};
+  filtered.forEach(r=>{ if (!isNaN(r.age)) (deptAgeGroups[r.deptName] = deptAgeGroups[r.deptName] || []).push(r.age); });
+  const deptAgeAvg = Object.entries(deptAgeGroups)
+    .filter(([,ages])=>ages.length>=3)
+    .map(([name,ages])=>[name, ages.reduce((a,b)=>a+b,0)/ages.length, ages.length])
+    .sort((a,b)=>b[1]-a[1]);
+  const oldestDept = deptAgeAvg[0];
+  document.getElementById('insightAgeTitle').textContent = oldestDept ? oldestDept[0] : 'ข้อมูลไม่เพียงพอ';
+  document.getElementById('insightAgeDetail').textContent = oldestDept ? ('อายุเฉลี่ยสูงสุด ' + oldestDept[1].toFixed(1) + ' ปี (' + oldestDept[2] + ' คน)') : 'ต้องมีอย่างน้อย 3 คนต่อหน่วยงาน';
+
+  const retireTop = retireEntries[0];
+  document.getElementById('insightRetireTitle').textContent = retireTop ? retireTop[0] : 'ไม่มีพนักงานใกล้เกษียณ';
+  document.getElementById('insightRetireDetail').textContent = retireTop ? ('ใกล้เกษียณมากที่สุด ' + retireTop[1] + ' คน จากทั้งหมด ' + retireRows.length + ' คน') : 'ไม่มีพนักงานอายุ 55 ปีขึ้นไปตามเงื่อนไขที่เลือก';
+
+  const glassCandidates = glassRaw.map((r,i)=>({ level: levelsForGlass[i], femalePct: r.total ? (r.female/r.total*100) : 0, total: r.total }))
+    .filter(r=>r.total>=3)
+    .sort((a,b)=>a.femalePct-b.femalePct);
+  const lowestFemaleLevel = glassCandidates[0];
+  document.getElementById('insightGlassTitle').textContent = lowestFemaleLevel ? ('ระดับ ' + lowestFemaleLevel.level) : 'ข้อมูลไม่เพียงพอ';
+  document.getElementById('insightGlassDetail').textContent = lowestFemaleLevel ? ('สัดส่วนหญิงต่ำสุด ' + lowestFemaleLevel.femalePct.toFixed(1) + '% ในระดับพนักงาน') : 'ต้องมีอย่างน้อย 3 คนต่อระดับ';
+
   // monthly headcount trend, stacked by company (respects dept/edu filters, across all months)
   trendChart.data.labels = MONTH_KEYS.map(mk=>MONTH_LABELS[mk]);
   trendChart.data.datasets.forEach(ds=>{
@@ -2343,6 +2479,21 @@ function render(){
 
 buildCharts();
 render();
+applyChartTheme();
+
+(function(){
+  const root = document.documentElement;
+  const btn = document.getElementById('themeToggle');
+  function updateIcon(){ btn.textContent = root.getAttribute('data-theme')==='dark' ? '☀️' : '🌙'; }
+  updateIcon();
+  btn.addEventListener('click', ()=>{
+    const goingDark = root.getAttribute('data-theme') !== 'dark';
+    if (goingDark) root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme');
+    try { localStorage.setItem('hrDashboardTheme', goingDark ? 'dark' : 'light'); } catch(e){}
+    updateIcon();
+    applyChartTheme();
+  });
+})();
 
 fMonth.addEventListener('change', ()=>{
   currentMonth = fMonth.value;
