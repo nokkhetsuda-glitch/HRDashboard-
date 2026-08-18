@@ -103,7 +103,6 @@
     gap: 16px;
     margin-bottom: 20px;
   }
-  .kpi-grid.kpi-grid-2col { grid-template-columns: repeat(2, 1fr); }
   .kpi-card {
     background: var(--white);
     border-radius: 16px;
@@ -414,12 +413,7 @@
     <div class="compare-list" id="compareList"></div>
   </div>
 
-  <div class="kpi-grid kpi-grid-2col">
-    <div class="kpi-card">
-      <div class="kpi-top"><span class="kpi-label">อัตราพนักงานคงอยู่</span><span class="kpi-icon">✅</span></div>
-      <div class="kpi-value" id="kpiActive">100%</div>
-      <div class="kpi-sub">พนักงานที่ยังทำงานอยู่ทั้งหมด</div>
-    </div>
+  <div class="kpi-grid">
     <div class="kpi-card">
       <div class="kpi-top"><span class="kpi-label">อายุเฉลี่ย</span><span class="kpi-icon">🎂</span></div>
       <div class="kpi-value" id="kpiAge">-</div>
