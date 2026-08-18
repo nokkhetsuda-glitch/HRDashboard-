@@ -419,6 +419,11 @@
       <div class="kpi-value" id="kpiAge">-</div>
       <div class="kpi-note">ปี ตามเงื่อนไขที่เลือก</div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-top"><span class="kpi-label">อัตราการลาออก</span><span class="kpi-icon">📉</span></div>
+      <div class="kpi-value" id="kpiTurnover">-</div>
+      <div class="kpi-note" id="kpiTurnoverNote">ตามเงื่อนไขที่เลือก</div>
+    </div>
   </div>
 
   <div class="kpi-grid2">
@@ -2653,6 +2658,11 @@ function render(){
   document.getElementById('turnoverLatestCount').textContent = turnoverLatest ? turnoverLatest.leaversCount.toLocaleString() : '0';
   document.getElementById('turnoverLatestStart').textContent = turnoverLatest ? turnoverLatest.startCount.toLocaleString() : '0';
   document.getElementById('turnoverLatestRate').textContent = turnoverLatest ? turnoverLatest.rate.toFixed(1) : '0.0';
+
+  document.getElementById('kpiTurnover').textContent = turnoverLatest ? turnoverLatest.rate.toFixed(1)+'%' : '-';
+  document.getElementById('kpiTurnoverNote').textContent = turnoverLatest
+    ? (turnoverLabels[turnoverLabels.length-1]+' · ออก '+turnoverLatest.leaversCount.toLocaleString()+' คน')
+    : 'ไม่มีข้อมูลเพียงพอ';
 }
 
 buildCharts();
