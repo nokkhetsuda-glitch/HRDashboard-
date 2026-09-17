@@ -413,6 +413,37 @@
     </div>
   </div>
 
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>เดือนข้อมูล</label>
+      <select id="fMonth"></select>
+    </div>
+    <div class="filter-item">
+      <label>บริษัท</label>
+      <div class="ms" id="msCompany">
+        <button type="button" class="ms-toggle" id="msCompanyToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msCompanyPanel"></div>
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>แผนก / หน่วยงาน</label>
+      <div class="ms" id="msDept">
+        <button type="button" class="ms-toggle" id="msDeptToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msDeptPanel"></div>
+      </div>
+    </div>
+    <div class="filter-item">
+      <label>วุฒิการศึกษา</label>
+      <div class="ms" id="msEdu">
+        <button type="button" class="ms-toggle" id="msEduToggle">ทั้งหมด</button>
+        <div class="ms-panel" id="msEduPanel"></div>
+      </div>
+    </div>
+    <button class="reset-btn" id="resetBtn">ล้างตัวกรอง</button>
+    <button class="reset-btn export-btn" id="exportBtn">⬇ Export CSV</button>
+    <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
+  </div>
+
   <div class="compare-banner">
     <div class="compare-head">
       <h3>เปรียบเทียบระหว่างเดือน</h3>
@@ -496,37 +527,6 @@
         <div class="insight-detail" id="insightGlassDetail">-</div>
       </div>
     </div>
-  </div>
-
-  <div class="filter-bar">
-    <div class="filter-item">
-      <label>เดือนข้อมูล</label>
-      <select id="fMonth"></select>
-    </div>
-    <div class="filter-item">
-      <label>บริษัท</label>
-      <div class="ms" id="msCompany">
-        <button type="button" class="ms-toggle" id="msCompanyToggle">ทั้งหมด</button>
-        <div class="ms-panel" id="msCompanyPanel"></div>
-      </div>
-    </div>
-    <div class="filter-item">
-      <label>แผนก / หน่วยงาน</label>
-      <div class="ms" id="msDept">
-        <button type="button" class="ms-toggle" id="msDeptToggle">ทั้งหมด</button>
-        <div class="ms-panel" id="msDeptPanel"></div>
-      </div>
-    </div>
-    <div class="filter-item">
-      <label>วุฒิการศึกษา</label>
-      <div class="ms" id="msEdu">
-        <button type="button" class="ms-toggle" id="msEduToggle">ทั้งหมด</button>
-        <div class="ms-panel" id="msEduPanel"></div>
-      </div>
-    </div>
-    <button class="reset-btn" id="resetBtn">ล้างตัวกรอง</button>
-    <button class="reset-btn export-btn" id="exportBtn">⬇ Export CSV</button>
-    <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
   </div>
 
   <div class="section-label">รายละเอียดเชิงลึก — คลิกการ์ดเพื่อเปิดดูแบบเต็มจอ</div>
