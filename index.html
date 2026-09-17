@@ -291,36 +291,46 @@
     scroll-margin-top: 72px;
   }
   .section-label::before { content:""; width:4px; height:14px; background:var(--blue); border-radius:2px; display:inline-block; flex-shrink:0; }
-  .section-toggle {
-    border: none; background: none; padding: 4px 2px; font: inherit; color: var(--blue-dark);
-    cursor: pointer; width: 100%; text-align: left; border-radius: 6px;
-  }
-  .section-toggle:hover { color: var(--blue); }
-  .section-toggle:hover::before { background: var(--blue-dark); }
-  .section-toggle-icon {
-    margin-left: auto; font-size: 11px; color: var(--sub); transition: transform .2s ease; flex-shrink: 0;
-  }
-  .section-block.collapsed .section-toggle-icon { transform: rotate(-90deg); }
-  .section-block.collapsed .section-body { display: none; }
 
-  .section-nav {
-    position: sticky; top: 0; z-index: 10;
-    display: flex; gap: 6px; overflow-x: auto;
-    background: var(--white); border: 1px solid var(--line); border-radius: 12px;
-    padding: 8px; margin-bottom: 8px;
-    box-shadow: 0 2px 10px rgba(11,46,89,.07);
-    scrollbar-width: none;
+  .section-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .section-card {
+    background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; box-shadow: 0 6px 16px -12px rgba(23,70,162,0.15); cursor: pointer; text-align: left;
+    font-family: inherit; display: flex; flex-direction: column; gap: 8px;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
-  .section-nav::-webkit-scrollbar { display: none; }
-  .section-nav-link {
-    flex: 0 0 auto;
-    padding: 7px 14px; border-radius: 8px;
-    font-size: 12.5px; font-weight: 700; color: var(--sub);
-    text-decoration: none; white-space: nowrap;
-    transition: background .15s, color .15s;
+  .section-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -10px rgba(23,70,162,0.28); border-color: var(--blue); }
+  .section-card .sc-icon {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--blue-light);
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
   }
-  .section-nav-link:hover { background: var(--blue-lighter); color: var(--blue-dark); }
-  .section-nav-link.active { background: var(--blue); color: #fff; }
+  .section-card .sc-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .section-card .sc-desc { font-size: 11px; color: var(--sub); line-height: 1.4; }
+  .section-card .sc-open { font-size: 10.5px; font-weight: 700; color: var(--blue); margin-top: auto; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(11,23,43,.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; z-index: 100;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-card {
+    background: var(--white); border-radius: 18px; box-shadow: 0 20px 60px rgba(9,20,40,.35);
+    width: 100%; max-width: 1120px; max-height: calc(100vh - 48px);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 22px; border-bottom: 1px solid var(--line); flex-shrink: 0;
+  }
+  .modal-head h2 { font-size: 15.5px; margin: 0; color: var(--navy); }
+  .modal-close {
+    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--blue-lighter); color: var(--ink); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--blue-light); }
+  .modal-body { padding: 18px 22px 20px; overflow-y: auto; }
 
   /* Month comparison banner */
   .compare-banner {
@@ -376,6 +386,9 @@
     .chart-row { grid-template-columns: 1fr; }
     .chart-row.triple { grid-template-columns: 1fr; }
     .insight-grid { grid-template-columns: repeat(2, 1fr); }
+    .section-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal-overlay { padding: 0; }
+    .modal-card { max-height: 100vh; border-radius: 0; }
   }
 </style>
 </head>
@@ -516,143 +529,112 @@
     <div class="filter-count">แสดงผล <b id="filterCountNum">0</b> / <span id="filterCountTotal">0</span> คน</div>
   </div>
 
-  <nav class="section-nav" id="sectionNav">
-    <a href="#sec-dept" class="section-nav-link">แผนก/วุฒิ</a>
-    <a href="#sec-group" class="section-nav-link">กลุ่ม/เพศ</a>
-    <a href="#sec-type" class="section-nav-link">ประเภท/ระดับ</a>
-    <a href="#sec-age" class="section-nav-link">อายุ/เพศ</a>
-    <a href="#sec-retire" class="section-nav-link">ใกล้เกษียณ</a>
-    <a href="#sec-trend" class="section-nav-link">แนวโน้ม</a>
-    <a href="#sec-turnover" class="section-nav-link">ลาออก</a>
-  </nav>
-
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-dept" aria-expanded="true">
-      การกระจายตัวตามแผนก/หน่วยงาน และวุฒิการศึกษา
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row">
-        <div class="chart-card">
-          <h3>จำนวนพนักงานแยกตามแผนก / หน่วยงาน</h3>
-          <div class="desc">เรียงจากมากไปน้อย (Top 15) · แสดงรหัสหน่วยงานนำหน้าชื่อ · คลิกแท่งเพื่อกรองข้อมูล</div>
-          <div class="chart-box tall"><canvas id="deptChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h3>สัดส่วนวุฒิการศึกษา</h3>
-          <div class="desc">แยกตามระดับการศึกษาสูงสุด · คลิกส่วนกราฟเพื่อกรองข้อมูล</div>
-          <div class="chart-box tall"><canvas id="eduChart"></canvas></div>
-        </div>
-      </div>
-    </div>
+  <div class="section-label">รายละเอียดเชิงลึก — คลิกการ์ดเพื่อเปิดดูแบบเต็มจอ</div>
+  <div class="section-grid" id="sectionGrid">
+    <button type="button" class="section-card" data-section="dept"><div class="sc-icon">🏢</div><div class="sc-title">แผนก/วุฒิ</div><div class="sc-desc">การกระจายตัวตามแผนก/หน่วยงาน และวุฒิการศึกษา</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="group"><div class="sc-icon">👥</div><div class="sc-title">กลุ่ม/เพศ</div><div class="sc-desc">สัดส่วนตามกลุ่มพนักงานและเพศ</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="type"><div class="sc-icon">📄</div><div class="sc-title">ประเภท/ระดับ</div><div class="sc-desc">ประเภทและระดับพนักงาน</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="age"><div class="sc-icon">🎂</div><div class="sc-title">อายุ/เพศ</div><div class="sc-desc">โครงสร้างพนักงานเชิงอายุและเพศ</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="retire"><div class="sc-icon">⏳</div><div class="sc-title">ใกล้เกษียณ</div><div class="sc-desc">กลุ่มใกล้เกษียณ (Succession Planning)</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="trend"><div class="sc-icon">📈</div><div class="sc-title">แนวโน้ม</div><div class="sc-desc">แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)</div><div class="sc-open">เปิดดู →</div></button>
+    <button type="button" class="section-card" data-section="turnover"><div class="sc-icon">📉</div><div class="sc-title">ลาออก</div><div class="sc-desc">อัตราการลาออก (Employee Turnover)</div><div class="sc-open">เปิดดู →</div></button>
   </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-group" aria-expanded="true">
-      สัดส่วนตามกลุ่มพนักงานและเพศ
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row">
-        <div class="chart-card">
-          <h3>สัดส่วนตามกลุ่มพนักงาน (Employee Group)</h3>
-          <div class="desc">กลุ่มบริหาร / จัดการ / วิชาชีพ / ปฏิบัติการ</div>
-          <div class="chart-box mid"><canvas id="groupChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <h3>สัดส่วนเพศ</h3>
-          <div class="desc">ชาย / หญิง ตามเงื่อนไขที่เลือก</div>
-          <div class="chart-box mid"><canvas id="genderChart"></canvas></div>
-        </div>
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="modalTitle">-</h2>
+        <button type="button" class="modal-close" id="modalClose" aria-label="ปิด">✕</button>
       </div>
-    </div>
-  </div>
+      <div class="modal-body">
+        <div id="modal-dept" class="modal-section" hidden>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h3>จำนวนพนักงานแยกตามแผนก / หน่วยงาน</h3>
+              <div class="desc">เรียงจากมากไปน้อย (Top 15) · แสดงรหัสหน่วยงานนำหน้าชื่อ · คลิกแท่งเพื่อกรองข้อมูล</div>
+              <div class="chart-box tall"><canvas id="deptChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>สัดส่วนวุฒิการศึกษา</h3>
+              <div class="desc">แยกตามระดับการศึกษาสูงสุด · คลิกส่วนกราฟเพื่อกรองข้อมูล</div>
+              <div class="chart-box tall"><canvas id="eduChart"></canvas></div>
+            </div>
+          </div>
+        </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-type" aria-expanded="true">
-      ประเภทและระดับพนักงาน
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row">
-        <div class="chart-card">
-          <h3>จำนวนพนักงานแบ่งตามประเภทพนักงาน</h3>
-          <div class="desc">พนักงานประจำ / สัญญาจ้างมีกำหนดระยะเวลา</div>
-          <div class="chart-box mid"><canvas id="typeChart"></canvas></div>
+        <div id="modal-group" class="modal-section" hidden>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h3>สัดส่วนตามกลุ่มพนักงาน (Employee Group)</h3>
+              <div class="desc">กลุ่มบริหาร / จัดการ / วิชาชีพ / ปฏิบัติการ</div>
+              <div class="chart-box mid"><canvas id="groupChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>สัดส่วนเพศ</h3>
+              <div class="desc">ชาย / หญิง ตามเงื่อนไขที่เลือก</div>
+              <div class="chart-box mid"><canvas id="genderChart"></canvas></div>
+            </div>
+          </div>
         </div>
-        <div class="chart-card">
-          <h3>จำนวนพนักงานแยกตามระดับพนักงาน</h3>
-          <div class="desc">เรียงจากระดับสูงสุดลงมา</div>
-          <div class="chart-box mid"><canvas id="levelChart"></canvas></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-age" aria-expanded="true">
-      โครงสร้างพนักงานเชิงอายุและเพศ
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row">
-        <div class="chart-card">
-          <h3>พีระมิดอายุ แยกชาย-หญิง (Age Pyramid)</h3>
-          <div class="desc">โครงสร้างกำลังคนตามช่วงอายุและเพศ</div>
-          <div class="chart-box tall"><canvas id="pyramidChart"></canvas></div>
+        <div id="modal-type" class="modal-section" hidden>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h3>จำนวนพนักงานแบ่งตามประเภทพนักงาน</h3>
+              <div class="desc">พนักงานประจำ / สัญญาจ้างมีกำหนดระยะเวลา</div>
+              <div class="chart-box mid"><canvas id="typeChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>จำนวนพนักงานแยกตามระดับพนักงาน</h3>
+              <div class="desc">เรียงจากระดับสูงสุดลงมา</div>
+              <div class="chart-box mid"><canvas id="levelChart"></canvas></div>
+            </div>
+          </div>
         </div>
-        <div class="chart-card">
-          <h3>สัดส่วนเพศตามระดับพนักงาน</h3>
-          <div class="desc">เช็คความสมดุลทางเพศในแต่ละระดับ (Glass Ceiling)</div>
-          <div class="chart-box tall"><canvas id="glassChart"></canvas></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-retire" aria-expanded="true">
-      กลุ่มใกล้เกษียณ (Succession Planning)
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row single">
-        <div class="chart-card">
-          <h3>พนักงานอายุ 55 ปีขึ้นไป แยกตามหน่วยงาน</h3>
-          <div class="desc">รวม <b id="retireCount">0</b> คน (<span id="retirePct">0</span>% ของพนักงานตามเงื่อนไขที่เลือก) · ใช้วางแผนสืบทอดตำแหน่งและสรรหาล่วงหน้า</div>
-          <div class="chart-box tall"><canvas id="retireChart"></canvas></div>
+        <div id="modal-age" class="modal-section" hidden>
+          <div class="chart-row">
+            <div class="chart-card">
+              <h3>พีระมิดอายุ แยกชาย-หญิง (Age Pyramid)</h3>
+              <div class="desc">โครงสร้างกำลังคนตามช่วงอายุและเพศ</div>
+              <div class="chart-box tall"><canvas id="pyramidChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>สัดส่วนเพศตามระดับพนักงาน</h3>
+              <div class="desc">เช็คความสมดุลทางเพศในแต่ละระดับ (Glass Ceiling)</div>
+              <div class="chart-box tall"><canvas id="glassChart"></canvas></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-trend" aria-expanded="true">
-      แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row single">
-        <div class="chart-card">
-          <h3>จำนวนพนักงานรายเดือน แยกตามบริษัท</h3>
-          <div class="desc">ตามเงื่อนไข แผนก / วุฒิการศึกษาที่เลือกไว้ (ทุกเดือนที่มีข้อมูล)</div>
-          <div class="chart-box mid"><canvas id="trendChart"></canvas></div>
+        <div id="modal-retire" class="modal-section" hidden>
+          <div class="chart-row single">
+            <div class="chart-card">
+              <h3>พนักงานอายุ 55 ปีขึ้นไป แยกตามหน่วยงาน</h3>
+              <div class="desc">รวม <b id="retireCount">0</b> คน (<span id="retirePct">0</span>% ของพนักงานตามเงื่อนไขที่เลือก) · ใช้วางแผนสืบทอดตำแหน่งและสรรหาล่วงหน้า</div>
+              <div class="chart-box tall"><canvas id="retireChart"></canvas></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="section-block">
-    <button type="button" class="section-label section-toggle" id="sec-turnover" aria-expanded="true">
-      อัตราการลาออก (Employee Turnover)
-      <span class="section-toggle-icon">▾</span>
-    </button>
-    <div class="section-body">
-      <div class="chart-row single">
-        <div class="chart-card">
-          <h3>อัตราการลาออกรายเดือน</h3>
-          <div class="desc">ล่าสุด (<span id="turnoverLatestLabel">-</span>): ออก <b id="turnoverLatestCount">0</b> คน จาก <span id="turnoverLatestStart">0</span> คน (<span id="turnoverLatestRate">0</span>%) · คำนวณจากรหัสพนักงานที่หายไปจากรายชื่อทั้งหมดในเดือนถัดไป ตามเงื่อนไข บริษัท/แผนก/วุฒิที่เลือกไว้</div>
-          <div class="chart-box mid"><canvas id="turnoverChart"></canvas></div>
+        <div id="modal-trend" class="modal-section" hidden>
+          <div class="chart-row single">
+            <div class="chart-card">
+              <h3>จำนวนพนักงานรายเดือน แยกตามบริษัท</h3>
+              <div class="desc">ตามเงื่อนไข แผนก / วุฒิการศึกษาที่เลือกไว้ (ทุกเดือนที่มีข้อมูล)</div>
+              <div class="chart-box mid"><canvas id="trendChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-turnover" class="modal-section" hidden>
+          <div class="chart-row single">
+            <div class="chart-card">
+              <h3>อัตราการลาออกรายเดือน</h3>
+              <div class="desc">ล่าสุด (<span id="turnoverLatestLabel">-</span>): ออก <b id="turnoverLatestCount">0</b> คน จาก <span id="turnoverLatestStart">0</span> คน (<span id="turnoverLatestRate">0</span>%) · คำนวณจากรหัสพนักงานที่หายไปจากรายชื่อทั้งหมดในเดือนถัดไป ตามเงื่อนไข บริษัท/แผนก/วุฒิที่เลือกไว้</div>
+              <div class="chart-box mid"><canvas id="turnoverChart"></canvas></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -3144,45 +3126,39 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-// section nav: highlight active link while scrolling
+// section detail modal: open/close full-screen view per chart section
 (function(){
-  const navLinks = [...document.querySelectorAll('.section-nav-link')];
-  const targets = navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
-  if (!targets.length || !('IntersectionObserver' in window)) return;
-  const setActive = (id)=> navLinks.forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id));
-  const io = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{ if (entry.isIntersecting) setActive(entry.target.id); });
-  }, { rootMargin: '-88px 0px -70% 0px', threshold: 0 });
-  targets.forEach(t=>io.observe(t));
-})();
+  const sectionTitles = {
+    dept: 'การกระจายตัวตามแผนก/หน่วยงาน และวุฒิการศึกษา',
+    group: 'สัดส่วนตามกลุ่มพนักงานและเพศ',
+    type: 'ประเภทและระดับพนักงาน',
+    age: 'โครงสร้างพนักงานเชิงอายุและเพศ',
+    retire: 'กลุ่มใกล้เกษียณ (Succession Planning)',
+    trend: 'แนวโน้มจำนวนพนักงานรายเดือน (Headcount Trend)',
+    turnover: 'อัตราการลาออก (Employee Turnover)'
+  };
+  const overlay = document.getElementById('modalOverlay');
+  const titleEl = document.getElementById('modalTitle');
 
-// collapsible chart sections, persisted per-section via localStorage
-(function(){
-  document.querySelectorAll('.section-toggle').forEach(btn=>{
-    const block = btn.closest('.section-block');
-    if (!block) return;
-    const key = 'hrDashboardCollapsed_' + btn.id;
-    let collapsed = false;
-    try { collapsed = localStorage.getItem(key) === '1'; } catch(e){}
-    if (collapsed) { block.classList.add('collapsed'); btn.setAttribute('aria-expanded','false'); }
-    btn.addEventListener('click', ()=>{
-      const nowCollapsed = block.classList.toggle('collapsed');
-      btn.setAttribute('aria-expanded', nowCollapsed ? 'false' : 'true');
-      try { localStorage.setItem(key, nowCollapsed ? '1' : '0'); } catch(e){}
-    });
+  function openSection(section){
+    if (!sectionTitles[section]) return;
+    document.querySelectorAll('.modal-section').forEach(s => s.hidden = (s.id !== 'modal-' + section));
+    titleEl.textContent = sectionTitles[section];
+    overlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(){
+    overlay.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('sectionGrid').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.section-card');
+    if (btn) openSection(btn.dataset.section);
   });
-  // expand the target section first if a nav link points into a collapsed one
-  document.querySelectorAll('.section-nav-link').forEach(a=>{
-    a.addEventListener('click', ()=>{
-      const targetEl = document.querySelector(a.getAttribute('href'));
-      const block = targetEl && targetEl.closest('.section-block');
-      if (block && block.classList.contains('collapsed')){
-        block.classList.remove('collapsed');
-        targetEl.setAttribute('aria-expanded','true');
-        try { localStorage.setItem('hrDashboardCollapsed_' + targetEl.id, '0'); } catch(e){}
-      }
-    });
-  });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e)=>{ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
 })();
 </script>
 </body>
